@@ -44,6 +44,14 @@
  
     --radius: 0.75rem;
 
+    /* Fixed dark monitoring console palette */
+    --monitor-background: 0 0% 4%;
+    --monitor-surface: 0 0% 6%;
+    --monitor-border: 0 0% 16%;
+    --monitor-foreground: 0 0% 100%;
+    --monitor-muted: 0 0% 65%;
+    --monitor-accent: 152 100% 50%;
+
     /* Layout tokens */
     --app-header-height: calc(64px + env(safe-area-inset-top, 0px));
  

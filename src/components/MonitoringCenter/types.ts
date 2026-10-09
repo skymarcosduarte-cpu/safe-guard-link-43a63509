@@ -23,7 +23,7 @@ export interface CellConfig {
   isMuted: boolean;
 }
 
-export type LayoutType = '1x1' | '2x1' | '2x2' | '1+2' | '1+4' | '3x3';
+export type LayoutType = '1x1' | '2x1' | '2x2';
 
 export interface LayoutOption {
   type: LayoutType;
