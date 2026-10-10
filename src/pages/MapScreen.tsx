@@ -25,6 +25,7 @@ import { InternalMessaging } from '@/components/InternalMessaging';
 import { SpecialtyFilter } from '@/components/SpecialtyFilter';
 import { LiveEventsMapView } from '@/components/LiveEventsMapView';
 import { CloudLayerToggle } from '@/components/CloudLayerToggle';
+import { CycloneForecastLayer } from '@/components/CycloneForecastLayer';
 
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -3757,6 +3758,7 @@ export const MapScreen: React.FC<MapScreenProps> = ({ className, respondersToMyA
 
       {/* Satellite cloud layer toggle (RainViewer infrared) */}
       <CloudLayerToggle map={mapInstanceRef.current} />
+      <CycloneForecastLayer map={mapInstanceRef.current} />
 
       {/* Active users count + center button + alerts panel - hide in eventos mode */}
       {mapViewMode === 'comunidad' && (

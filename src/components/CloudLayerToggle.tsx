@@ -1,5 +1,5 @@
 // Cloud Layer Toggle — satellite infrared cloud overlay for the Community Map.
-// Uses RainViewer's free satellite (infrared) tiles, refreshed every 10 minutes.
+// Uses NOAA GOES infrared tiles, refreshed every 10 minutes.
 // A floating button toggles the layer; cyclone markers come from LiveEventsMapView.
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
@@ -12,20 +12,6 @@ interface CloudLayerToggleProps {
 
 const RAINVIEWER_API = 'https://api.rainviewer.com/public/weather-maps.json';
 const REFRESH_MS = 10 * 60 * 1000;
-
-async function fetchLatestSatellitePath(): Promise<string | null> {
-  try {
-    const res = await fetch(RAINVIEWER_API);
-    if (!res.ok) return null;
-    const data = await res.json();
-    const frames: { time: number; path: string }[] = data?.satellite?.infrared || [];
-    if (!frames.length) return null;
-    // Use the most recent frame
-    return frames[frames.length - 1].path;
-  } catch {
-    return null;
-  }
-}
 
 export const CloudLayerToggle: React.FC<CloudLayerToggleProps> = ({ map }) => {
   const [active, setActive] = useState(false);
@@ -47,25 +33,20 @@ export const CloudLayerToggle: React.FC<CloudLayerToggleProps> = ({ map }) => {
   const addLayer = useCallback(async () => {
     if (!map) return;
     setLoading(true);
-    const path = await fetchLatestSatellitePath();
-    setLoading(false);
-    if (!path) return;
-
-    // Swap in the newest frame
     if (layerRef.current) {
-      map.removeLayer(layerRef.current);
+      map.removeLayer(layerRef.current as any);
       layerRef.current = null;
     }
-    const layer = L.tileLayer(
-      `https://tilecache.rainviewer.com${path}/512/{z}/{x}/{y}/2/1_1.png`,
-      {
-        opacity: 0.65,
-        zIndex: 5,
-        attribution: 'Nubes: RainViewer',
-      }
-    );
-    layer.addTo(map);
-    layerRef.current = layer;
+    // GOES East + West infrared (NOAA via Iowa Mesonet). Bright, opaque clouds.
+    const bust = Math.floor(Date.now() / REFRESH_MS);
+    const mk = (name: string) =>
+      L.tileLayer(`https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/${name}/{z}/{x}/{y}.png?t=${bust}`, {
+        opacity: 0.9, zIndex: 5, className: 'cloud-ir-tiles', attribution: 'Nubes: NOAA GOES / IEM',
+      });
+    const group = L.layerGroup([mk('goes-west-ir-4km-900913'), mk('goes-east-ir-4km-900913')]);
+    group.addTo(map);
+    layerRef.current = group as any;
+    setLoading(false);
   }, [map]);
 
   const toggle = useCallback(async () => {
