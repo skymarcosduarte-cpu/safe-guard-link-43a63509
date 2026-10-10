@@ -17,8 +17,10 @@ const REFRESH_MS = 10 * 60 * 1000;
 export const CloudLayerToggle: React.FC<CloudLayerToggleProps> = ({ map }) => {
   const [active, setActive] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [opacity, setOpacity] = useState(0.85);
   const layerRef = useRef<L.TileLayer | null>(null);
   const refreshTimerRef = useRef<number | null>(null);
+  const opacityRef = useRef(0.85);
 
   const removeLayer = useCallback(() => {
     if (layerRef.current && map) {
