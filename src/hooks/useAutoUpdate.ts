@@ -9,9 +9,6 @@ export function useAutoUpdate() {
   const hasChecked = useRef(false);
 
   useEffect(() => {
-    if (hasChecked.current) return;
-    hasChecked.current = true;
-
     const performAutoUpdate = async () => {
       try {
         // Only prevent infinite loops within the SAME session
