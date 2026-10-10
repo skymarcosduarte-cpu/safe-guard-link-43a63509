@@ -38,28 +38,30 @@ export const CloudLayerToggle: React.FC<CloudLayerToggleProps> = ({ map }) => {
       map.removeLayer(layerRef.current as any);
       layerRef.current = null;
     }
-    // GOES East + West infrared (NOAA via Iowa Mesonet). Bright, opaque clouds.
-    // NOTE: no cache-busting query param — IEM's tile cache already refreshes
-    // every few minutes; extra params force cache misses and cause patchy tiles.
+    // NASA GIBS infrared (Band 13 Clean IR): GOES-East, GOES-West and Himawari
+    // give continuous global coverage from a reliable global CDN. "default" time
+    // always resolves to the latest available frame.
     const TRANSPARENT =
       'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
-    const mk = (name: string, bounds: L.LatLngBoundsExpression) =>
-      L.tileLayer(`https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/${name}/{z}/{x}/{y}.png`, {
-        opacity: 0.9,
+    const mk = (layer: string) =>
+      L.tileLayer(`${GIBS_BASE}/${layer}/default/default/GoogleMapsCompatible_Level7/{z}/{y}/{x}.png`, {
+        opacity: 0.85,
         zIndex: 5,
         className: 'cloud-ir-tiles',
-        attribution: 'Nubes: NOAA GOES / IEM',
-        bounds,
-        maxNativeZoom: 8,
+        attribution: 'Nubes: NASA GIBS',
+        maxNativeZoom: 7,
         errorTileUrl: TRANSPARENT,
         updateWhenIdle: false,
         keepBuffer: 4,
+        crossOrigin: true,
       });
     const group = L.layerGroup([
-      // GOES-West (Pacific, ~137°W satellite)
-      mk('goes-west-ir-4km-900913', [[-65, -180], [80, -95]]),
-      // GOES-East (Americas/Atlantic, ~75°W satellite)
-      mk('goes-east-ir-4km-900913', [[-65, -150], [80, -10]]),
+      // Himawari-9 (Asia/Oceania, ~140.7°E)
+      mk('Himawari_AHI_Band13_Clean_Infrared'),
+      // GOES-West (Pacific/Americas, ~137.2°W)
+      mk('GOES-West_ABI_Band13_Clean_Infrared'),
+      // GOES-East (Americas/Atlantic, ~75.2°W) — on top where disks overlap
+      mk('GOES-East_ABI_Band13_Clean_Infrared'),
     ]);
     group.addTo(map);
     layerRef.current = group as any;
