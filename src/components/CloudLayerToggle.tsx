@@ -1,5 +1,6 @@
 // Cloud Layer Toggle — satellite infrared cloud overlay for the Community Map.
-// Uses NOAA GOES infrared tiles, refreshed every 10 minutes.
+// Uses NASA GIBS infrared tiles (GOES-East, GOES-West, Himawari) for continuous
+// global coverage, refreshed every 10 minutes.
 // A floating button toggles the layer; cyclone markers come from LiveEventsMapView.
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
@@ -10,7 +11,7 @@ interface CloudLayerToggleProps {
   map: L.Map | null;
 }
 
-const RAINVIEWER_API = 'https://api.rainviewer.com/public/weather-maps.json';
+const GIBS_BASE = 'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best';
 const REFRESH_MS = 10 * 60 * 1000;
 
 export const CloudLayerToggle: React.FC<CloudLayerToggleProps> = ({ map }) => {
