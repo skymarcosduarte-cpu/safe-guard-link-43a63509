@@ -25,6 +25,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useLocation } from '@/hooks/useLocation';
 import { useCurrentWeather } from '@/hooks/useCurrentWeather';
 import { supabase } from '@/integrations/supabase/client';
+import { isNative } from '@/lib/capacitor';
 import type { TabId } from '@/components/BottomNavigation';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
@@ -79,27 +80,29 @@ const SECTIONS: SectionItem[] = [
   },
 ];
 
-// "Red Mesh" incluye la Red Malla Bluetooth y el test mensual: debe ser
-// alcanzable desde el inicio (no tiene pestaña propia en la barra inferior).
-SECTIONS.push({
-  id: 'status',
-  label: 'Red Mesh',
-  icon: <Radio className="w-10 h-10" strokeWidth={2.5} />,
-  description: 'Red Malla Bluetooth y test mensual',
-  gradient: 'home-section-mesh',
-  iconBg: 'home-section-icon-mesh',
-});
+// Red Mesh y Detector de Señales necesitan Bluetooth: sólo funcionan en la app
+// instalada (Android/iPhone). En la versión web se ocultan para no ofrecer algo
+// que no puede funcionar.
+if (isNative()) {
+  SECTIONS.push({
+    id: 'status',
+    label: 'Red Mesh',
+    icon: <Radio className="w-10 h-10" strokeWidth={2.5} />,
+    description: 'Red Malla Bluetooth y test mensual',
+    gradient: 'home-section-mesh',
+    iconBg: 'home-section-icon-mesh',
+  });
 
-// Detector de Señales: sección propia.
-SECTIONS.push({
-  id: 'detector',
-  nav: 'detector',
-  label: 'Detector de Señales',
-  icon: <Radar className="w-10 h-10" strokeWidth={2.5} />,
-  description: 'Encuentra dispositivos activos en zonas de desastre',
-  gradient: 'home-section-detector',
-  iconBg: 'home-section-icon-detector',
-});
+  SECTIONS.push({
+    id: 'detector',
+    nav: 'detector',
+    label: 'Detector de Señales',
+    icon: <Radar className="w-10 h-10" strokeWidth={2.5} />,
+    description: 'Encuentra dispositivos activos en zonas de desastre',
+    gradient: 'home-section-detector',
+    iconBg: 'home-section-icon-detector',
+  });
+}
 
 // Comunidad y Ajustes: última fila de la cuadrícula.
 SECTIONS.push(
