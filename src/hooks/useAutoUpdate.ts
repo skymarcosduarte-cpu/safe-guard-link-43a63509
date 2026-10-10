@@ -9,9 +9,6 @@ export function useAutoUpdate() {
   const hasChecked = useRef(false);
 
   useEffect(() => {
-    if (hasChecked.current) return;
-    hasChecked.current = true;
-
     const performAutoUpdate = async () => {
       try {
         // Only prevent infinite loops within the SAME session
@@ -60,6 +57,18 @@ export function useAutoUpdate() {
     // Minimal delay to not block initial render
     const timer = setTimeout(performAutoUpdate, 500);
 
-    return () => clearTimeout(timer);
+    // Re-check every time the user returns to the app (foreground)
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        sessionStorage.removeItem(SESSION_UPDATE_KEY);
+        performAutoUpdate();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
   }, []);
 }
