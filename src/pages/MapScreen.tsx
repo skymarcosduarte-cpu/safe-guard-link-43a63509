@@ -3755,6 +3755,9 @@ export const MapScreen: React.FC<MapScreenProps> = ({ className, respondersToMyA
         userPosition={position}
       />
 
+      {/* Satellite cloud layer toggle (RainViewer infrared) */}
+      <CloudLayerToggle map={mapInstanceRef.current} />
+
       {/* Active users count + center button + alerts panel - hide in eventos mode */}
       {mapViewMode === 'comunidad' && (
         <div className="map-fixed-header flex items-center justify-between pointer-events-none">
