@@ -24,6 +24,7 @@ import { ActiveUsersPanel } from '@/components/ActiveUsersPanel';
 import { InternalMessaging } from '@/components/InternalMessaging';
 import { SpecialtyFilter } from '@/components/SpecialtyFilter';
 import { LiveEventsMapView } from '@/components/LiveEventsMapView';
+import { CloudLayerToggle } from '@/components/CloudLayerToggle';
 
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
