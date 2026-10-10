@@ -770,3 +770,4 @@ html, body {
   70% { transform: scale(1.45); opacity: 0; }
   100% { transform: scale(1.45); opacity: 0; }
 }
+.cloud-ir-tiles { filter: contrast(1.6) brightness(1.25); mix-blend-mode: screen; }
