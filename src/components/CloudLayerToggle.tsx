@@ -44,12 +44,12 @@ export const CloudLayerToggle: React.FC<CloudLayerToggleProps> = ({ map }) => {
     const TRANSPARENT =
       'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
     const mk = (layer: string) =>
-      L.tileLayer(`${GIBS_BASE}/${layer}/default/default/GoogleMapsCompatible_Level7/{z}/{y}/{x}.png`, {
+      L.tileLayer(`${GIBS_BASE}/${layer}/default/default/GoogleMapsCompatible_Level6/{z}/{y}/{x}.png`, {
         opacity: 0.85,
         zIndex: 5,
         className: 'cloud-ir-tiles',
         attribution: 'Nubes: NASA GIBS',
-        maxNativeZoom: 7,
+        maxNativeZoom: 6,
         errorTileUrl: TRANSPARENT,
         updateWhenIdle: false,
         keepBuffer: 4,
