@@ -217,7 +217,7 @@ export const GlobalHazardPanel: React.FC<GlobalHazardPanelProps> = ({ map, visib
 
       {/* Panel */}
       {visible && (
-        <div className="fixed bottom-[13.5rem] right-4 z-[1400] w-80 max-h-[55vh] flex flex-col rounded-xl shadow-2xl border border-slate-700 overflow-hidden bg-slate-900/95 backdrop-blur-sm">
+        <div className="fixed bottom-[16rem] right-4 z-[1400] w-80 max-h-[55vh] flex flex-col rounded-xl shadow-2xl border border-slate-700 overflow-hidden bg-slate-900/95 backdrop-blur-sm">
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 bg-slate-800 border-b border-slate-700 shrink-0">
             <div className="flex items-center gap-2">
