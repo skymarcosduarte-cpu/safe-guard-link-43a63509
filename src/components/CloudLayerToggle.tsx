@@ -13,14 +13,17 @@ interface CloudLayerToggleProps {
 
 const GIBS_BASE = 'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best';
 const REFRESH_MS = 10 * 60 * 1000;
+// Nubes arranca semi-transparente (35%) para que el mapa y las trayectorias se
+// vean debajo; el usuario la sube o baja con el control si lo desea.
+const DEFAULT_CLOUD_OPACITY = 0.35;
 
 export const CloudLayerToggle: React.FC<CloudLayerToggleProps> = ({ map }) => {
   const [active, setActive] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [opacity, setOpacity] = useState(0.85);
+  const [opacity, setOpacity] = useState(DEFAULT_CLOUD_OPACITY);
   const layerRef = useRef<L.TileLayer | null>(null);
   const refreshTimerRef = useRef<number | null>(null);
-  const opacityRef = useRef(0.85);
+  const opacityRef = useRef(DEFAULT_CLOUD_OPACITY);
 
   const removeLayer = useCallback(() => {
     if (layerRef.current && map) {
