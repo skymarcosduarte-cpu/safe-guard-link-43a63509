@@ -38,12 +38,28 @@ export const CloudLayerToggle: React.FC<CloudLayerToggleProps> = ({ map }) => {
       layerRef.current = null;
     }
     // GOES East + West infrared (NOAA via Iowa Mesonet). Bright, opaque clouds.
-    const bust = Math.floor(Date.now() / REFRESH_MS);
-    const mk = (name: string) =>
-      L.tileLayer(`https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/${name}/{z}/{x}/{y}.png?t=${bust}`, {
-        opacity: 0.9, zIndex: 5, className: 'cloud-ir-tiles', attribution: 'Nubes: NOAA GOES / IEM',
+    // NOTE: no cache-busting query param — IEM's tile cache already refreshes
+    // every few minutes; extra params force cache misses and cause patchy tiles.
+    const TRANSPARENT =
+      'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
+    const mk = (name: string, bounds: L.LatLngBoundsExpression) =>
+      L.tileLayer(`https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/${name}/{z}/{x}/{y}.png`, {
+        opacity: 0.9,
+        zIndex: 5,
+        className: 'cloud-ir-tiles',
+        attribution: 'Nubes: NOAA GOES / IEM',
+        bounds,
+        maxNativeZoom: 8,
+        errorTileUrl: TRANSPARENT,
+        updateWhenIdle: false,
+        keepBuffer: 4,
       });
-    const group = L.layerGroup([mk('goes-west-ir-4km-900913'), mk('goes-east-ir-4km-900913')]);
+    const group = L.layerGroup([
+      // GOES-West (Pacific, ~137°W satellite)
+      mk('goes-west-ir-4km-900913', [[-65, -180], [80, -95]]),
+      // GOES-East (Americas/Atlantic, ~75°W satellite)
+      mk('goes-east-ir-4km-900913', [[-65, -150], [80, -10]]),
+    ]);
     group.addTo(map);
     layerRef.current = group as any;
     setLoading(false);
