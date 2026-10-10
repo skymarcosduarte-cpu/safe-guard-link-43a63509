@@ -88,7 +88,7 @@ export const CloudLayerToggle: React.FC<CloudLayerToggleProps> = ({ map }) => {
   return (
     <button
       onClick={toggle}
-      className={`absolute bottom-24 right-3 z-[1000] flex items-center gap-2 rounded-full px-4 py-3 text-sm font-bold shadow-lg border-2 transition-colors ${
+      className={`fixed bottom-48 right-4 z-[1500] flex items-center gap-2 rounded-full px-4 py-3 text-sm font-bold shadow-lg border-2 transition-colors ${
         active
           ? 'bg-sky-600 text-white border-sky-300'
           : 'bg-white text-sky-700 border-sky-600'
