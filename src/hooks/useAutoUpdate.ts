@@ -57,6 +57,18 @@ export function useAutoUpdate() {
     // Minimal delay to not block initial render
     const timer = setTimeout(performAutoUpdate, 500);
 
-    return () => clearTimeout(timer);
+    // Re-check every time the user returns to the app (foreground)
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        sessionStorage.removeItem(SESSION_UPDATE_KEY);
+        performAutoUpdate();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
   }, []);
 }
