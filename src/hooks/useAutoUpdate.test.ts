@@ -42,7 +42,7 @@ describe('automatic update reload protection', () => {
     harness.check.mockResolvedValue({ latest: '2.9.8' });
   });
   afterEach(() => {
-    cleanup?.();
+    if (typeof cleanup === 'function') cleanup();
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
     vi.useRealTimers();
@@ -53,7 +53,7 @@ describe('automatic update reload protection', () => {
     const firstUrl = location.href;
     await foreground();
     await foreground();
-    cleanup?.();
+    if (typeof cleanup === 'function') cleanup();
     await mount();
     expect(harness.check).toHaveBeenCalledTimes(4);
     expect(cacheKeys).toHaveBeenCalledTimes(1);
