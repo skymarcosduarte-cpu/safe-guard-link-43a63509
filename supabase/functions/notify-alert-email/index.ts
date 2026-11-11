@@ -90,7 +90,7 @@ serve(async (req) => {
     }
 
     const payload: AlertPayload = await req.json();
-    console.log('[notify-alert-email] Received payload:', payload);
+    console.log('[notify-alert-email] Received payload for type:', payload?.type);
 
     if (!payload.alertType || !payload.alertId) {
       return new Response(
@@ -101,6 +101,34 @@ serve(async (req) => {
 
     // Use service role to access recipients
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Authorization: the alert must belong to the caller and be recent and unresolved.
+    // Email content comes from the stored alert, never from the request body.
+    const alertTable = payload.alertType === 'PANIC' ? 'panic_events' : 'help_requests';
+    const kindCol = payload.alertType === 'PANIC' ? 'panic_type' : 'kind';
+    const { data: alertRow } = await supabase
+      .from(alertTable)
+      .select(`id, user_id, ${kindCol}, message, lat, lng, resolved, created_at`)
+      .eq('id', payload.alertId)
+      .maybeSingle();
+    // deno-lint-ignore no-explicit-any
+    const row = alertRow as any;
+    if (
+      !row || row.user_id !== user.id || row.resolved ||
+      new Date(row.created_at).getTime() < Date.now() - 10 * 60 * 1000
+    ) {
+      return new Response(
+        JSON.stringify({ error: 'Forbidden' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    const { data: creatorProfile } = await supabase
+      .from('profiles_public').select('nickname').eq('user_id', user.id).maybeSingle();
+    payload.creatorName = creatorProfile?.nickname || 'Usuario';
+    payload.message = row.message ? String(row.message).slice(0, 500) : undefined;
+    payload.lat = Number(row.lat);
+    payload.lng = Number(row.lng);
+    if (payload.alertType === 'PANIC') payload.panicType = row.panic_type; else payload.helpKind = row.kind;
 
     // Get active email recipients based on alert type
     const filterColumn = payload.alertType === 'PANIC' ? 'notify_panic' : 'notify_help_request';
@@ -226,7 +254,7 @@ serve(async (req) => {
 
     // Send emails using Resend API directly
     const emailAddresses = recipients.map(r => r.email);
-    console.log(`[notify-alert-email] Sending to ${emailAddresses.length} recipients:`, emailAddresses);
+    console.log(`[notify-alert-email] Sending to ${emailAddresses.length} recipients`);
 
     try {
       const response = await fetch('https://api.resend.com/emails', {

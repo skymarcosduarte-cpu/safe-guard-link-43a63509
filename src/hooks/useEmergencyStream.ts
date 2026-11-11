@@ -62,7 +62,7 @@ export interface EmergencyStreamRecord {
 
 const MAX_CLIPS = 20; // 5 minutes max (20 * 15 seconds)
 const CLIP_DURATION_MS = 15000; // 15 seconds per clip
-const SIGNED_URL_EXPIRY = 604800; // 7 days in seconds
+const SIGNED_URL_EXPIRY = 86400; // 24 hours in seconds
 const STORAGE_BUCKET = 'emergency-streams';
 
 // ============================================
@@ -192,7 +192,7 @@ export function useEmergencyStream() {
       return null;
     }
 
-    // Get signed URL valid for 7 days
+    // Get signed URL valid for 24 hours
     const { data: signedData, error: signedError } = await supabase.storage
       .from(STORAGE_BUCKET)
       .createSignedUrl(fileName, SIGNED_URL_EXPIRY);

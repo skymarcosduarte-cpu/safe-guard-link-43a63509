@@ -464,7 +464,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     setGenerating(true);
     try {
       // Generate random code
-      const code = `EXS-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+      const code = `EXS-${Array.from(crypto.getRandomValues(new Uint8Array(6)), (b) => b.toString(16).padStart(2, '0')).join('').toUpperCase()}`;
       setInviteCode(code);
 
       // Generate QR code

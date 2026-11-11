@@ -114,7 +114,8 @@ serve(async (req) => {
         created_at
       `)
       .eq('status', 'ACTIVE')
-      .lt('eta', thresholdTime);
+      .lt('eta', thresholdTime)
+      .eq('user_id', user.id); // Callers may only process their own trips
 
     if (tripsError) {
       console.error('[check-delayed-trips] Error fetching trips:', tripsError);
@@ -139,10 +140,7 @@ serve(async (req) => {
       .in('id', userIds);
 
     // Get user emails from auth.users
-    const { data: authUsers } = await supabase.auth.admin.listUsers();
-    const emailMap = new Map(
-      authUsers?.users?.map(u => [u.id, u.email]) || []
-    );
+    const emailMap = new Map<string, string | undefined>([[user.id, user.email]]);
 
     const profileMap = new Map(
       profiles?.map(p => [p.id, { nickname: p.nickname, full_name: p.full_name }]) || []
@@ -338,7 +336,7 @@ serve(async (req) => {
         );
 
         if (emailSent) {
-          console.log(`[check-delayed-trips] Email sent to ${trip.email}`);
+          console.log(`[check-delayed-trips] Email sent for trip ${trip.trip_id ?? trip.id}`);
           emailsSent++;
 
           // Track that we sent an email to this user
@@ -346,13 +344,13 @@ serve(async (req) => {
             user_id: trip.user_id,
             type: 'trip_delayed_email',
             title: '📧 Email enviado',
-            message: `Se envió email de seguimiento a ${trip.email} por viaje retrasado a ${trip.destination}`,
+            message: `Se envió email de seguimiento por viaje retrasado a ${trip.destination}`,
             read: true
           });
         }
 
       } catch (emailError) {
-        console.error(`[check-delayed-trips] Error sending email to ${trip.email}:`, emailError);
+        console.error(`[check-delayed-trips] Error sending trip email:`, emailError);
       }
     }
 

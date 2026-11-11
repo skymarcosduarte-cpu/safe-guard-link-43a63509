@@ -261,7 +261,7 @@ serve(async (req) => {
     const user_id = userData.user.id;
     const email = userData.user.email;
 
-    console.log(`[send-welcome-email] Sending welcome email to ${email}`);
+    console.log(`[send-welcome-email] Sending welcome email`);
 
     const emailHtml = generateWelcomeEmailHtml(nickname || 'Usuario', full_name || nickname || 'Usuario');
     
@@ -277,7 +277,7 @@ serve(async (req) => {
         user_id,
         type: 'welcome_email',
         title: '📧 Email de bienvenida enviado',
-        message: `Se envió el email de bienvenida a ${email}`,
+        message: `Se envió el email de bienvenida`,
         read: true
       });
     }

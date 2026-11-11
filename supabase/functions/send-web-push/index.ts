@@ -71,16 +71,29 @@ serve(async (req) => {
       global: { headers: { Authorization: authHeader } }
     });
 
-    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser();
-    if (authError || !user) {
-      console.error('[send-web-push] Invalid authentication:', authError?.message);
-      return new Response(
-        JSON.stringify({ error: 'Invalid authentication' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    const isServiceCall = authHeader === `Bearer ${supabaseServiceKey}`;
+    let user: { id: string } | null = isServiceCall ? { id: 'service' } : null;
+    if (!isServiceCall) {
+      const { data: { user: authUser }, error: authError } = await supabaseAuth.auth.getUser();
+      if (authError || !authUser) {
+        console.error('[send-web-push] Invalid authentication:', authError?.message);
+        return new Response(
+          JSON.stringify({ error: 'Invalid authentication' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      // Only admins may push arbitrary notifications to chosen users
+      const { data: isAdmin } = await supabaseAuth.rpc('is_admin', { _user_id: authUser.id });
+      if (!isAdmin) {
+        return new Response(
+          JSON.stringify({ error: 'Forbidden' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      user = authUser;
     }
 
-    console.log(`[send-web-push] Authenticated user: ${user.id}`);
+    console.log(`[send-web-push] Authorized caller: ${user!.id}`);
 
     const { 
       userIds, 
