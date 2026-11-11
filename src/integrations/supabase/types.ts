@@ -1731,6 +1731,7 @@ export type Database = {
       is_admin: { Args: { _user_id: string }; Returns: boolean }
       is_avisos_moderator: { Args: { _user_id: string }; Returns: boolean }
       is_ex_sos: { Args: { _user_id: string }; Returns: boolean }
+      is_member: { Args: { _user_id: string }; Returns: boolean }
       is_rescatista: { Args: { _user_id: string }; Returns: boolean }
       is_sos_activo: { Args: { _user_id: string }; Returns: boolean }
       is_within_radius_of_panic: {
