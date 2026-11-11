@@ -136,6 +136,24 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+    // Only internal cron (shared secret) or an admin may run this job
+    const cronSecret = Deno.env.get('CRON_SECRET');
+    const providedSecret = req.headers.get('x-cron-secret');
+    let authorized = !!cronSecret && providedSecret === cronSecret;
+    if (!authorized) {
+      const token = (req.headers.get('Authorization') ?? '').replace('Bearer ', '');
+      const { data: { user: caller } } = token ? await supabase.auth.getUser(token) : { data: { user: null } };
+      if (caller) {
+        const { data: isAdmin } = await supabase.rpc('is_admin', { _user_id: caller.id });
+        authorized = !!isAdmin;
+      }
+    }
+    if (!authorized) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     // Find users who:
     // 1. Have an account (exist in auth.users)
     // 2. Don't have a profile (not in profiles table)
@@ -248,7 +266,7 @@ serve(async (req) => {
           user_id: user.id,
           type: 'profile_reminder',
           title: '📧 Recordatorio enviado',
-          message: `Se envió recordatorio para completar perfil a ${user.email}`,
+          message: `Se envió recordatorio para completar perfil`,
           read: true
         });
 

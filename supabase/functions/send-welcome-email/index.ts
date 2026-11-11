@@ -277,7 +277,7 @@ serve(async (req) => {
         user_id,
         type: 'welcome_email',
         title: '📧 Email de bienvenida enviado',
-        message: `Se envió el email de bienvenida a ${email}`,
+        message: `Se envió el email de bienvenida`,
         read: true
       });
     }

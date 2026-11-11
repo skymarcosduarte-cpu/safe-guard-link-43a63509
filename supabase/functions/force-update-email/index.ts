@@ -153,7 +153,18 @@ Deno.serve(async (req) => {
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    const { version, message } = await req.json();
+    const body = await req.json().catch(() => ({}));
+    const version = String(body?.version ?? '');
+    if (!/^\d+\.\d+\.\d+$/.test(version)) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid version' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    const escapeHtml = (v: string) => v.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
+    const message = typeof body?.message === 'string' && body.message.trim()
+      ? escapeHtml(body.message.slice(0, 500))
+      : undefined;
     console.log(`[force-update-email] Mass email v${version} initiated by ${userData.user.id}`);
 
     // Get all users from auth
