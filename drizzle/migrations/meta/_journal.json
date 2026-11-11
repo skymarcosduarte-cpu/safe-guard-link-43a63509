@@ -15,6 +15,13 @@
       "when": 1789357530995,
       "tag": "0001_panic_events_resolved_created_at_index",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794408317980,
+      "tag": "0002_migration",
+      "breakpoints": true
     }
   ]
 }
