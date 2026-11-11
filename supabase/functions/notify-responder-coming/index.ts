@@ -127,6 +127,19 @@ serve(async (req) => {
       }
     }
 
+    // Verify the alert exists and belongs to creatorUserId
+    {
+      const table = alertType === 'panic' ? 'panic_events' : 'help_requests';
+      const { data: alertOwner } = await supabase
+        .from(table).select('user_id').eq('id', alertId).maybeSingle();
+      if (!alertOwner || alertOwner.user_id !== creatorUserId) {
+        return new Response(
+          JSON.stringify({ error: 'Permission denied' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
+
     console.log(`[notify-responder-coming] ${eventType} for ${alertType} ${alertId}`, {
       responderUserId,
       responderCount,
