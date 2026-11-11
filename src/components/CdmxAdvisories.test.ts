@@ -8,3 +8,9 @@ describe('CDMX advisories',()=>{
  it('excludes reports outside CDMX',()=>expect(normalizeItems([{...item,title:'Bloqueo en Guadalajara'}],now)).toEqual([]));
  it('rejects future and undated publications',()=>expect(normalizeItems([{...item,pubDate:'2026-11-12T00:00:00Z'},{...item,pubDate:''}],now)).toEqual([]));
 });
+import { rainFromSmn } from '../../supabase/functions/fetch-cdmx-advisories/feed';
+describe('SMN rain',()=>{
+ const row={ides:'9',ndia:'0',nmun:'Coyoacán',prec:'30',probprec:'80',dloc:'20261111T00'};
+ it('classifies 25 mm as lluvias fuertes',()=>expect(rainFromSmn([row],'x')[0].level).toBe('Lluvias fuertes'));
+ it('ignores other states, days and low probability',()=>expect(rainFromSmn([{...row,ides:'15'},{...row,ndia:'1'},{...row,probprec:'30'}],'x')).toEqual([]));
+});
