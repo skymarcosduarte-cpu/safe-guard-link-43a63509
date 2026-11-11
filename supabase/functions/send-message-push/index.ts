@@ -77,10 +77,35 @@ serve(async (req) => {
       );
     }
 
-    console.log(`[send-message-push] Sending push to ${receiverId} from ${user.id}`);
-
     // Use service role for database operations
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Authorization: caller must have actually sent a message to this receiver recently.
+    // Notification text is taken from that stored message, not from the request.
+    const since = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+    const { data: lastMsg } = await supabase
+      .from('internal_messages')
+      .select('message')
+      .eq('sender_id', user.id)
+      .eq('receiver_id', receiverId)
+      .gte('created_at', since)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (!lastMsg) {
+      return new Response(
+        JSON.stringify({ error: 'Permission denied' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    const { data: senderProfile } = await supabase
+      .from('profiles_public').select('nickname').eq('user_id', user.id).maybeSingle();
+    const safeSenderName = (senderProfile?.nickname || 'Usuario').slice(0, 60);
+    const safePreview = String(lastMsg.message || '').slice(0, 120);
+    const _unusedClientFields = { senderName, messagePreview };
+    void _unusedClientFields;
+
+    console.log(`[send-message-push] Sending push to ${receiverId} from ${user.id}`);
 
     // Get push subscriptions for the receiver
     const { data: subscriptions, error: subError } = await supabase
@@ -105,7 +130,7 @@ serve(async (req) => {
         await channel.send({
           type: 'broadcast',
           event: 'new_message',
-          payload: { senderName, messagePreview, senderId: user.id },
+          payload: { senderName: safeSenderName, messagePreview: safePreview, senderId: user.id },
         });
         await supabase.removeChannel(channel);
       } catch (e) {
@@ -120,8 +145,8 @@ serve(async (req) => {
 
     const isClave100 = alertType === 'CLAVE100';
     const pushPayload = JSON.stringify({
-      title: isClave100 ? `🚨 CLAVE 100 - ${senderName}` : `💬 Mensaje de ${senderName}`,
-      body: messagePreview || 'Tienes un nuevo mensaje',
+      title: isClave100 ? `🚨 CLAVE 100 - ${safeSenderName}` : `💬 Mensaje de ${safeSenderName}`,
+      body: safePreview || 'Tienes un nuevo mensaje',
       icon: '/icon-192-v2.png',
       badge: '/icon-192-v2.png',
       tag: isClave100 ? 'clave100-emergency' : `message-${user.id}-${Date.now()}`,
@@ -186,7 +211,7 @@ serve(async (req) => {
       await channel.send({
         type: 'broadcast',
         event: 'new_message',
-        payload: { senderName, messagePreview, senderId: user.id },
+        payload: { senderName: safeSenderName, messagePreview: safePreview, senderId: user.id },
       });
       await supabase.removeChannel(channel);
     } catch (_e) {
