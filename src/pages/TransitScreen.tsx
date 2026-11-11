@@ -9,6 +9,7 @@ const HelicopterIcon: React.FC<{ className?: string }> = ({ className }) => (
     <path d="M3 3h18M12 3v7M5 10h14l-2 4H7l-2-4zM7 14v3a2 2 0 002 2h6a2 2 0 002-2v-3M9 19v2M15 19v2" />
   </svg>
 );
+import { CdmxAdvisories } from '@/components/CdmxAdvisories';
 import { BackToHomeButton } from '@/components/BackToHomeButton';
 import { ShareTripToWhatsApp } from '@/components/ShareTripToWhatsApp';
 import { ShareArrivalToWhatsApp } from '@/components/ShareArrivalToWhatsApp';
@@ -1033,6 +1034,8 @@ export const TransitScreen: React.FC<TransitScreenProps> = ({
           </div>
         </div>
       </div>
+
+      <CdmxAdvisories />
 
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'trips' | 'reports' | 'history' | 'map')} className="p-4">
         <TabsList className="grid w-full grid-cols-4">
