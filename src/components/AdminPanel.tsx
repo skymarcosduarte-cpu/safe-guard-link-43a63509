@@ -216,9 +216,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ open, onClose }) => {
   // Generate random code
   const generateRandomCode = (): string => {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Avoid confusing chars like 0/O, 1/I
+    const bytes = new Uint32Array(12);
+    crypto.getRandomValues(bytes);
     let code = '';
-    for (let i = 0; i < 6; i++) {
-      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    for (let i = 0; i < 12; i++) {
+      code += chars.charAt(bytes[i] % chars.length);
     }
     return code;
   };
