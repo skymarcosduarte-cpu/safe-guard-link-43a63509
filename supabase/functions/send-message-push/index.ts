@@ -59,9 +59,9 @@ serve(async (req) => {
       );
     }
 
-    const { receiverId, senderName, messagePreview, senderId, alertType } = await req.json();
+    const { receiverId, senderId, alertType } = await req.json();
 
-    if (!receiverId || !senderName) {
+    if (!receiverId || typeof receiverId !== 'string') {
       return new Response(
         JSON.stringify({ error: 'Missing required fields' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -102,8 +102,6 @@ serve(async (req) => {
       .from('profiles_public').select('nickname').eq('user_id', user.id).maybeSingle();
     const safeSenderName = (senderProfile?.nickname || 'Usuario').slice(0, 60);
     const safePreview = String(lastMsg.message || '').slice(0, 120);
-    const _unusedClientFields = { senderName, messagePreview };
-    void _unusedClientFields;
 
     console.log(`[send-message-push] Sending push to ${receiverId} from ${user.id}`);
 

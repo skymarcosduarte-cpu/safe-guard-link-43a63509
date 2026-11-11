@@ -91,24 +91,42 @@ serve(async (req) => {
 
     console.log(`[notify-panic-broadcast] Authenticated user: ${user.id}`);
 
-    const { 
-      panicEventId,
-      panicType,
-      creatorName,
-      message,
-      lat,
-      lng
-    } = await req.json();
+    const { panicEventId } = await req.json();
 
-    if (!panicEventId || !panicType) {
+    if (!panicEventId || typeof panicEventId !== 'string') {
       return new Response(
-        JSON.stringify({ error: 'panicEventId and panicType are required' }),
+        JSON.stringify({ error: 'panicEventId is required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     // Use service role to access all subscriptions
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Authorization: the panic event must exist, belong to the caller, be unresolved and recent.
+    // All notification content is taken from the stored event, never from the request.
+    const { data: panicEvent } = await supabase
+      .from('panic_events')
+      .select('id, user_id, panic_type, message, lat, lng, resolved, created_at')
+      .eq('id', panicEventId)
+      .maybeSingle();
+    const tenMinAgo = Date.now() - 10 * 60 * 1000;
+    if (
+      !panicEvent || panicEvent.user_id !== user.id || panicEvent.resolved ||
+      new Date(panicEvent.created_at).getTime() < tenMinAgo
+    ) {
+      return new Response(
+        JSON.stringify({ error: 'Forbidden' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    const { data: creatorProfile } = await supabase
+      .from('profiles_public').select('nickname').eq('user_id', user.id).maybeSingle();
+    const panicType = panicEvent.panic_type;
+    const creatorName = creatorProfile?.nickname || null;
+    const message = panicEvent.message ? String(panicEvent.message).slice(0, 200) : null;
+    const lat = panicEvent.lat;
+    const lng = panicEvent.lng;
 
     // Get ALL push subscriptions EXCEPT the creator's own subscriptions
     const { data: subscriptions, error: subError } = await supabase
