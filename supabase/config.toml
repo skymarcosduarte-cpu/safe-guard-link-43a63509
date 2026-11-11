@@ -80,3 +80,6 @@ verify_jwt = false
 
 [functions.notify-responder-contact]
 verify_jwt = false
+
+[functions.quake-alert-dispatch]
+verify_jwt = false
