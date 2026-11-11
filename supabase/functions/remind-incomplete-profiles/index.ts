@@ -245,7 +245,7 @@ serve(async (req) => {
     console.log(`[remind-incomplete-profiles][${requestId}] Users to send reminders to: ${usersToRemind.length}`);
 
     let remindersSent = 0;
-    const results: Array<{ email: string; success: boolean; error?: string }> = [];
+    const results: Array<{ userId: string; success: boolean; error?: string }> = [];
 
     for (const user of usersToRemind) {
       if (!user.email) {
