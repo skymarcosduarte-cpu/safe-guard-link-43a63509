@@ -270,9 +270,9 @@ serve(async (req) => {
           read: true
         });
 
-        results.push({ email: user.email, success: true });
+        results.push({ userId: user.id, success: true });
       } else {
-        results.push({ email: user.email, success: false, error: 'Failed to send' });
+        results.push({ userId: user.id, success: false, error: 'Failed to send' });
       }
 
       // Small delay between emails to avoid rate limiting
