@@ -1153,6 +1153,36 @@ export type Database = {
         }
         Relationships: []
       }
+      quake_alerts_sent: {
+        Row: {
+          created_at: string
+          emails_sent: number
+          event_id: string
+          magnitude: number
+          occurred_at: string
+          place: string | null
+          push_sent: number
+        }
+        Insert: {
+          created_at?: string
+          emails_sent?: number
+          event_id: string
+          magnitude: number
+          occurred_at: string
+          place?: string | null
+          push_sent?: number
+        }
+        Update: {
+          created_at?: string
+          emails_sent?: number
+          event_id?: string
+          magnitude?: number
+          occurred_at?: string
+          place?: string | null
+          push_sent?: number
+        }
+        Relationships: []
+      }
       quake_checkins: {
         Row: {
           created_at: string | null
