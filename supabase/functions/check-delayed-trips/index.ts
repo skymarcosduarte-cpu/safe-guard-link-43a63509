@@ -338,7 +338,7 @@ serve(async (req) => {
         );
 
         if (emailSent) {
-          console.log(`[check-delayed-trips] Email sent to ${trip.email}`);
+          console.log(`[check-delayed-trips] Email sent for trip ${trip.trip_id ?? trip.id}`);
           emailsSent++;
 
           // Track that we sent an email to this user
@@ -352,7 +352,7 @@ serve(async (req) => {
         }
 
       } catch (emailError) {
-        console.error(`[check-delayed-trips] Error sending email to ${trip.email}:`, emailError);
+        console.error(`[check-delayed-trips] Error sending trip email:`, emailError);
       }
     }
 

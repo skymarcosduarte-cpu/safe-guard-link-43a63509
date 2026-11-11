@@ -36,13 +36,13 @@ async function sendEmail(to: string, subject: string, html: string): Promise<boo
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error(`[force-update-email] Resend API error for ${to}:`, errorText);
+      console.error(`[force-update-email] Resend API error:`, errorText);
       return false;
     }
 
     return true;
   } catch (error) {
-    console.error(`[force-update-email] Error sending to ${to}:`, error);
+    console.error(`[force-update-email] Error sending email:`, error);
     return false;
   }
 }

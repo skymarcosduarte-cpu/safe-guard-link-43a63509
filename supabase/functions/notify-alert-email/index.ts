@@ -90,7 +90,7 @@ serve(async (req) => {
     }
 
     const payload: AlertPayload = await req.json();
-    console.log('[notify-alert-email] Received payload:', payload);
+    console.log('[notify-alert-email] Received payload for type:', payload?.type);
 
     if (!payload.alertType || !payload.alertId) {
       return new Response(
@@ -226,7 +226,7 @@ serve(async (req) => {
 
     // Send emails using Resend API directly
     const emailAddresses = recipients.map(r => r.email);
-    console.log(`[notify-alert-email] Sending to ${emailAddresses.length} recipients:`, emailAddresses);
+    console.log(`[notify-alert-email] Sending to ${emailAddresses.length} recipients`);
 
     try {
       const response = await fetch('https://api.resend.com/emails', {

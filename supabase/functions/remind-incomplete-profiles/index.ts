@@ -236,7 +236,7 @@ serve(async (req) => {
       }
 
       const hoursAgo = (Date.now() - new Date(user.created_at).getTime()) / (1000 * 60 * 60);
-      console.log(`[remind-incomplete-profiles][${requestId}] Sending reminder to ${user.email} (created ${Math.round(hoursAgo)}h ago)`);
+      console.log(`[remind-incomplete-profiles][${requestId}] Sending reminder to user ${user.id} (created ${Math.round(hoursAgo)}h ago)`);
 
       const sent = await sendReminderEmail(user.email, hoursAgo);
       
