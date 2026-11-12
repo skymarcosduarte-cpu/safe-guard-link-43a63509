@@ -115,7 +115,7 @@ serve(async (req) => {
       `)
       .eq('status', 'ACTIVE')
       .lt('eta', thresholdTime)
-      .eq('user_id', user.id); // Callers may only process their own trips
+      .limit(50); // Any member's check covers all overdue trips; 4h dedup prevents repeats
 
     if (tripsError) {
       console.error('[check-delayed-trips] Error fetching trips:', tripsError);
@@ -140,7 +140,11 @@ serve(async (req) => {
       .in('id', userIds);
 
     // Get user emails from auth.users
-    const emailMap = new Map<string, string | undefined>([[user.id, user.email]]);
+    const emailMap = new Map<string, string | undefined>();
+    for (const ownerId of [...new Set((delayedTrips ?? []).map((t) => t.user_id))]) {
+      const { data: owner } = await supabase.auth.admin.getUserById(ownerId);
+      emailMap.set(ownerId, owner?.user?.email ?? undefined);
+    }
 
     const profileMap = new Map(
       profiles?.map(p => [p.id, { nickname: p.nickname, full_name: p.full_name }]) || []

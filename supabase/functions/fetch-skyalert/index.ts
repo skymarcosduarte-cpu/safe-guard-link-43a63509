@@ -90,6 +90,7 @@ async function fetchSkyAlertWebsite(): Promise<SkyAlert[]> {
         'User-Agent': 'MATS/1.0 (Emergency Alert System)',
         'Accept': 'text/html',
       },
+      signal: AbortSignal.timeout(8000),
     });
     
     if (!response.ok) {
@@ -137,6 +138,7 @@ async function fetchSASMEX(): Promise<SkyAlert[]> {
         'User-Agent': 'MATS/1.0',
         'Accept': 'text/html',
       },
+      signal: AbortSignal.timeout(8000),
     });
     
     if (!response.ok) {
