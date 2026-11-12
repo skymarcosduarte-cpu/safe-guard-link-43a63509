@@ -12,6 +12,7 @@
  */
 
 import React, { useState } from 'react';
+import { withFreshClipUrls } from '@/lib/emergencyClipUrls';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { 
@@ -71,7 +72,7 @@ function RecordingItem({ recording, onDelete }: RecordingItemProps) {
         .order('sequence_number', { ascending: true });
 
       if (!error && data) {
-        setClips(data as EmergencyStreamClip[]);
+        setClips(await withFreshClipUrls(data as EmergencyStreamClip[]));
       }
     } finally {
       setLoadingClips(false);

@@ -22,6 +22,7 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { clipStoragePath, signClipUrl, withFreshClipUrls } from '@/lib/emergencyClipUrls';
 import { toast } from 'sonner';
 import { useEmergencyNotification } from './useEmergencyNotification';
 
@@ -62,7 +63,6 @@ export interface EmergencyStreamRecord {
 
 const MAX_CLIPS = 20; // 5 minutes max (20 * 15 seconds)
 const CLIP_DURATION_MS = 15000; // 15 seconds per clip
-const SIGNED_URL_EXPIRY = 86400; // 24 hours in seconds
 const STORAGE_BUCKET = 'emergency-streams';
 
 // ============================================
@@ -192,18 +192,9 @@ export function useEmergencyStream() {
       return null;
     }
 
-    // Get signed URL valid for 24 hours
-    const { data: signedData, error: signedError } = await supabase.storage
-      .from(STORAGE_BUCKET)
-      .createSignedUrl(fileName, SIGNED_URL_EXPIRY);
-
-    if (signedError || !signedData?.signedUrl) {
-      console.error('[useEmergencyStream] Signed URL error:', signedError);
-      return null;
-    }
-
     console.log(`[useEmergencyStream] Clip ${clipNumber} uploaded successfully`);
-    return signedData.signedUrl;
+    // Return the storage path; signed URLs are generated short-lived on demand
+    return fileName;
   }, []);
 
   // ============================================
@@ -269,7 +260,7 @@ export function useEmergencyStream() {
       return [];
     }
 
-    return data as EmergencyStreamClip[];
+    return withFreshClipUrls(data as EmergencyStreamClip[]);
   }, []);
 
   // ============================================
@@ -298,6 +289,7 @@ export function useEmergencyStream() {
 
     // Save to database
     await saveClipRecord(videoUrl, clipNumber);
+    const shareUrl = (await signClipUrl(videoUrl)) ?? '';
 
     // Get fresh location
     const location = await getCurrentLocation();
@@ -307,7 +299,7 @@ export function useEmergencyStream() {
 
     // Post to community chat (only first 3 clips to avoid spam)
     if (clipNumber <= 3) {
-      const clipMessage = `🎥 **Clip #${clipNumber} de emergencia** de ${userNameRef.current}\n📍 ${locationLink}\n▶️ Ver video: ${videoUrl}`;
+      const clipMessage = `🎥 **Clip #${clipNumber} de emergencia** de ${userNameRef.current}\n📍 ${locationLink}\n▶️ Ver video (1 h): ${shareUrl}`;
       await postToCommunityChat(clipMessage);
     }
 
@@ -406,7 +398,7 @@ export function useEmergencyStream() {
     message += `🕐 ${new Date().toLocaleString('es-MX')}\n\n`;
 
     if (clips.length > 0) {
-      message += `*Videos disponibles (7 días):*\n`;
+      message += `*Videos disponibles (1 hora):*\n`;
       clips.forEach((clip) => {
         message += `▶️ Clip #${clip.sequence_number}: ${clip.video_url}\n`;
       });
@@ -754,6 +746,17 @@ export function useMyEmergencyRecordings() {
 
   const deleteRecording = useCallback(async (streamId: string) => {
     try {
+      // Remove the video files from storage so any shared link stops working
+      const { data: clipRows } = await supabase
+        .from('emergency_stream_clips')
+        .select('video_url')
+        .eq('stream_id', streamId);
+      const paths = (clipRows ?? []).map((c) => clipStoragePath(c.video_url));
+      if (paths.length > 0) {
+        const { error: rmError } = await supabase.storage.from(STORAGE_BUCKET).remove(paths);
+        if (rmError) console.error('[useMyEmergencyRecordings] Storage remove error:', rmError);
+      }
+
       // Delete clips first (cascade should handle this, but just in case)
       await supabase
         .from('emergency_stream_clips')
