@@ -509,7 +509,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
           ))}
         </nav>
         <div className="flex justify-center py-6" aria-label="Logo de M.A.T.S.">
-          <MatsLogo size={80} />
+          <MatsLogo size={240} />
         </div>
       </div>
     </div>
