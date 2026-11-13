@@ -30,6 +30,7 @@ import type { TabId } from '@/components/BottomNavigation';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import { EmergencyNewsTicker } from '@/components/EmergencyNewsTicker';
+import { MatsLogo } from '@/components/MatsLogo';
 
 interface HomeScreenProps {
   onNavigate: (tab: TabId) => void;
@@ -507,6 +508,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
             </Button>
           ))}
         </nav>
+        <div className="flex justify-center py-6" aria-label="Logo de M.A.T.S.">
+          <MatsLogo size={80} />
+        </div>
       </div>
     </div>
   );
