@@ -785,6 +785,11 @@ html, body {
 }
 .cloud-ir-tiles { filter: contrast(1.6) brightness(1.25); }
 
+/* Clip only the exterior of the original logo, preserving its green button. */
+.mats-logo-cutout {
+  clip-path: inset(7.2% round 16%);
+}
+
 /* Home keeps color as a wayfinding accent, not a full-tile background. */
 .home-shortcut[data-section="map"] { --shortcut-color: var(--home-map); }
 .home-shortcut[data-section="alerts"] { --shortcut-color: var(--home-alerts); }

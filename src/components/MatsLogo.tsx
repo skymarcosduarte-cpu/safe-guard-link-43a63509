@@ -23,7 +23,7 @@ export const MatsLogo = memo(forwardRef<HTMLDivElement, MatsLogoProps>(({
         alt="M.A.T.S. Logo"
         width={size}
         height={size}
-        className={`flex-shrink-0 ${sizeClass} object-contain`}
+        className={`mats-logo-cutout flex-shrink-0 ${sizeClass} object-contain`}
         style={{
           maxWidth: size,
           maxHeight: size,
@@ -54,7 +54,7 @@ export const MatsMarkerIcon = memo(({ size = 32 }: { size?: number }) => (
     alt="M.A.T.S."
     width={size}
     height={size}
-    className="rounded-md object-contain"
+    className="mats-logo-cutout rounded-md object-contain"
     style={{ maxWidth: size, maxHeight: size }}
     loading="lazy"
   />
