@@ -508,8 +508,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
             </Button>
           ))}
         </nav>
-        <div className="flex justify-center py-6" aria-label="Logo de M.A.T.S.">
-          <MatsLogo size={240} />
+        <div className="flex justify-center py-2 sm:py-4" aria-label="Logo de M.A.T.S.">
+          <MatsLogo size={240} className="w-[min(240px,40vw,18dvh)] max-w-full [&_img]:w-full [&_img]:h-auto" />
         </div>
       </div>
     </div>
