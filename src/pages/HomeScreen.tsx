@@ -1,5 +1,5 @@
 // Home Dashboard Screen for M.A.T.S.
-// Welcome screen with user greeting, online users count, and main section icons
+// Compact home dashboard with emergency news and section shortcuts
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { 
@@ -29,6 +29,7 @@ import { isNative } from '@/lib/capacitor';
 import type { TabId } from '@/components/BottomNavigation';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
+import { EmergencyNewsTicker } from '@/components/EmergencyNewsTicker';
 
 interface HomeScreenProps {
   onNavigate: (tab: TabId) => void;
@@ -49,7 +50,7 @@ const SECTIONS: SectionItem[] = [
   { 
     id: 'alerts', 
     label: 'Sismos', 
-    icon: <Activity className="w-10 h-10" strokeWidth={2.5} />,
+    icon: <Activity className="w-6 h-6" strokeWidth={2.5} />,
     description: 'Alertas sísmicas y reportes',
     gradient: 'home-section-alerts',
     iconBg: 'home-section-icon-alerts'
@@ -57,7 +58,7 @@ const SECTIONS: SectionItem[] = [
   { 
     id: 'map', 
     label: 'Mapa', 
-    icon: <Map className="w-10 h-10" strokeWidth={2.5} />,
+    icon: <Map className="w-6 h-6" strokeWidth={2.5} />,
     description: 'Ver ubicaciones en tiempo real',
     gradient: 'home-section-map',
     iconBg: 'home-section-icon-map'
@@ -65,7 +66,7 @@ const SECTIONS: SectionItem[] = [
   { 
     id: 'resources', 
     label: 'RecurSOS', 
-    icon: <HeartPulse className="w-10 h-10" strokeWidth={2.5} />,
+    icon: <HeartPulse className="w-6 h-6" strokeWidth={2.5} />,
     description: 'Recursos de emergencia',
     gradient: 'home-section-resources',
     iconBg: 'home-section-icon-resources'
@@ -73,7 +74,7 @@ const SECTIONS: SectionItem[] = [
   { 
     id: 'transit', 
     label: 'Tránsito Seguro', 
-    icon: <Car className="w-10 h-10" strokeWidth={2.5} />,
+    icon: <Car className="w-6 h-6" strokeWidth={2.5} />,
     description: 'Registrar y monitorear viajes',
     gradient: 'home-section-transit',
     iconBg: 'home-section-icon-transit'
@@ -87,7 +88,7 @@ if (isNative()) {
   SECTIONS.push({
     id: 'status',
     label: 'Red Mesh',
-    icon: <Radio className="w-10 h-10" strokeWidth={2.5} />,
+    icon: <Radio className="w-6 h-6" strokeWidth={2.5} />,
     description: 'Red Malla Bluetooth y test mensual',
     gradient: 'home-section-mesh',
     iconBg: 'home-section-icon-mesh',
@@ -97,7 +98,7 @@ if (isNative()) {
     id: 'detector',
     nav: 'detector',
     label: 'Detector de Señales',
-    icon: <Radar className="w-10 h-10" strokeWidth={2.5} />,
+    icon: <Radar className="w-6 h-6" strokeWidth={2.5} />,
     description: 'Encuentra dispositivos activos en zonas de desastre',
     gradient: 'home-section-detector',
     iconBg: 'home-section-icon-detector',
@@ -109,7 +110,7 @@ SECTIONS.push(
   {
     id: 'community',
     label: 'Comunidad',
-    icon: <Users className="w-10 h-10" strokeWidth={2.5} />,
+    icon: <Users className="w-6 h-6" strokeWidth={2.5} />,
     description: 'AviSOS, Noticias y Marketplace',
     gradient: 'home-section-community',
     iconBg: 'home-section-icon-community',
@@ -117,7 +118,7 @@ SECTIONS.push(
   {
     id: 'settings',
     label: 'Ajustes',
-    icon: <Settings className="w-10 h-10" strokeWidth={2.5} />,
+    icon: <Settings className="w-6 h-6" strokeWidth={2.5} />,
     description: 'Configuración y perfil',
     gradient: 'home-section-settings',
     iconBg: 'home-section-icon-settings',
@@ -163,27 +164,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
     position?.lat ?? null,
     position?.lng ?? null
   );
-  const [onlineCount, setOnlineCount] = useState<number>(0);
   const [emergencyAlerts, setEmergencyAlerts] = useState<EmergencyAlert[]>([]);
   const [dismissedAlerts, setDismissedAlerts] = useState<Set<string>>(new Set());
-
-  // Fetch online users count
-  const fetchOnlineCount = useCallback(async () => {
-    try {
-      const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000).toISOString();
-      const { count, error } = await supabase
-        .from('user_locations')
-        .select('*', { count: 'exact', head: true })
-        .eq('is_online', true)
-        .gte('updated_at', thirtyMinutesAgo);
-      
-      if (!error && count !== null) {
-        setOnlineCount(count);
-      }
-    } catch (e) {
-      console.error('[HomeScreen] Error fetching online count:', e);
-    }
-  }, []);
 
   // Fetch active emergency alerts
   const fetchEmergencyAlerts = useCallback(async () => {
@@ -252,7 +234,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
             lng: event.lng,
             message: event.message || undefined,
             creatorName: profilesMap[event.user_id] || 'Usuario',
-            createdAt: new Date(event.created_at!),
+            createdAt: new Date(event.created_at ?? Date.now()),
           });
         }
       }
@@ -271,7 +253,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
             lng: req.lng,
             message: req.message || undefined,
             creatorName: profilesMap[req.user_id] || 'Usuario',
-            createdAt: new Date(req.created_at!),
+            createdAt: new Date(req.created_at ?? Date.now()),
           });
         }
       }
@@ -286,17 +268,15 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
   }, [user?.id]);
 
   useEffect(() => {
-    fetchOnlineCount();
     fetchEmergencyAlerts();
     
     // Refresh every 30 seconds
     const interval = setInterval(() => {
-      fetchOnlineCount();
-      fetchEmergencyAlerts();
+        fetchEmergencyAlerts();
     }, 30000);
     
     return () => clearInterval(interval);
-  }, [fetchOnlineCount, fetchEmergencyAlerts]);
+  }, [fetchEmergencyAlerts]);
 
   // Subscribe to realtime updates for panic events and help requests
   useEffect(() => {
@@ -356,13 +336,13 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
 
   return (
     <div className="flex-1 overflow-auto pb-20">
-      <div className="px-4 pt-4 space-y-6">
+      <div className="mx-auto max-w-3xl px-4 pt-4 space-y-4">
         {/* Welcome Section */}
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold text-[hsl(210,80%,30%)]">
+          <h1 className="text-xl font-semibold text-foreground break-words">
             {getGreeting()}, {firstName}
           </h1>
-          <p className="text-base text-muted-foreground capitalize">{todayDate}</p>
+          <p className="text-sm text-muted-foreground capitalize">{todayDate}</p>
         </div>
 
         {/* Emergency Alerts Banner - Prominent position right after greeting */}
@@ -492,135 +472,41 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
           </motion.div>
         )}
 
-        {/* Weather Card */}
+        {/* Compact weather strip */}
         {(weather || weatherLoading) && (
-          <div className="bg-card border-2 border-border rounded-2xl p-5 shadow-sm">
-            <div className="flex items-center gap-3">
-              <MapPinned className="w-5 h-5 text-muted-foreground shrink-0" />
-              <span className="text-base text-muted-foreground truncate font-medium">
-                {weather?.locationName || 'Obteniendo ubicación...'}
-              </span>
+          <div className="flex items-center gap-3 py-2">
+            <span className="text-3xl shrink-0" aria-hidden="true">{weather?.icon ?? '☁️'}</span>
+            <div className="min-w-0 flex-1">
+              <p className="flex items-center gap-1.5 text-sm text-muted-foreground"><MapPinned className="w-4 h-4 shrink-0" /><span className="truncate">{weather?.locationName || 'Obteniendo ubicación…'}</span></p>
+              <p className="text-sm text-muted-foreground">{weather?.description ?? 'Consultando clima…'}</p>
             </div>
-            {weather && (
-              <div className="flex items-center gap-4 mt-3">
-                <span className="text-5xl">{weather.icon}</span>
-                <div>
-                  <p className="text-4xl font-bold text-foreground">{weather.temperature}°</p>
-                  <p className="text-lg text-muted-foreground">{weather.description}</p>
-                </div>
-              </div>
-            )}
-            {weatherLoading && !weather && (
-              <div className="flex items-center gap-2 mt-3">
-                <div className="w-12 h-12 rounded-full bg-muted animate-pulse" />
-                <div className="space-y-2">
-                  <div className="w-20 h-8 bg-muted animate-pulse rounded" />
-                  <div className="w-28 h-5 bg-muted animate-pulse rounded" />
-                </div>
-              </div>
-            )}
+            {weather && <span className="text-2xl font-semibold text-foreground shrink-0">{weather.temperature}°</span>}
           </div>
         )}
 
-        {/* Online Users Indicator - Clickable to navigate to Map */}
-        <button
-          onClick={() => onNavigate('map')}
-          className="w-full bg-card border-2 border-border rounded-2xl p-5 shadow-sm hover:bg-muted/50 active:scale-[0.98] transition-all text-left"
-        >
-          <div className="flex items-center gap-4">
-            <div className="relative">
-              <div className="w-5 h-5 rounded-full bg-safe" />
-              <div className="absolute inset-0 w-5 h-5 rounded-full bg-safe animate-ping opacity-60" />
-            </div>
-            <div className="flex-1">
-              <p className="text-xl font-bold text-safe">{onlineCount} usuarios conectados</p>
-              <p className="text-base text-muted-foreground">Miembros activos en la comunidad</p>
-            </div>
-            <ChevronRight className="w-6 h-6 text-muted-foreground" />
-          </div>
-        </button>
+        <EmergencyNewsTicker />
 
-        {/* Sections Grid */}
-        <div className="space-y-4">
-          <h2 className="text-base font-semibold text-muted-foreground uppercase tracking-wider">
-            Secciones
-          </h2>
-          <div className="grid grid-cols-2 gap-4">
-            {SECTIONS.map((section, index) => (
-              <motion.button
-                key={`${section.id}-${index}`}
-                onClick={() => onNavigate(section.nav ?? section.id)}
-                initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                transition={{ 
-                  duration: 0.4, 
-                  delay: index * 0.08,
-                  ease: [0.25, 0.46, 0.45, 0.94]
-                }}
-                whileHover={{ 
-                  scale: 1.04, 
-                  y: -4,
-                  transition: { duration: 0.2 }
-                }}
-                whileTap={{ 
-                  scale: 0.97,
-                  transition: { duration: 0.1 }
-                }}
-                className={cn(
-                  "relative overflow-hidden rounded-2xl p-5 text-left",
-                  "border-2 shadow-sm",
-                  section.gradient
-                )}
-              >
-                <div className="space-y-4">
-                  {/* Icon - Animated container with colored icon */}
-                  <motion.div 
-                    className={cn(
-                      "w-16 h-16 rounded-2xl flex items-center justify-center shadow-md",
-                      section.iconBg
-                    )}
-                    whileHover={{ 
-                      scale: 1.1, 
-                      rotate: [0, -5, 5, 0],
-                      transition: { duration: 0.4 }
-                    }}
-                  >
-                    {section.icon}
-                  </motion.div>
-                  
-                  {/* Label - inherits text color from gradient class (white default, navy for transit) */}
-                  <div>
-                    <h3 className={cn(
-                      "font-bold text-xl leading-tight drop-shadow-sm",
-                      section.id === 'transit' ? '' : 'text-white'
-                    )}>
-                      {section.label}
-                    </h3>
-                    <p className={cn(
-                      "text-sm line-clamp-2 mt-1 leading-relaxed",
-                      section.id === 'transit' ? 'opacity-80' : 'text-white/90'
-                    )}>
-                      {section.description}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Animated chevron */}
-                <motion.div
-                  className="absolute top-5 right-4"
-                  initial={{ x: 0 }}
-                  whileHover={{ x: 4 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <ChevronRight className={cn(
-                    "w-7 h-7",
-                    section.id === 'transit' ? 'opacity-50' : 'text-white/60'
-                  )} />
-                </motion.div>
-              </motion.button>
-            ))}
-          </div>
-        </div>
+        {/* Compact two-column shortcuts */}
+        <nav aria-label="Secciones" className="grid grid-cols-2 gap-3">
+          {SECTIONS.map(section => (
+            <Button
+              key={section.id}
+              variant="outline"
+              data-section={section.id}
+              className="home-shortcut h-auto min-h-[116px] w-full flex-col items-start justify-start gap-2 whitespace-normal rounded-lg p-3 text-left sm:min-h-[124px] sm:p-4"
+              onClick={() => onNavigate(section.nav ?? section.id)}
+            >
+              <span className="flex w-full items-center justify-between gap-2">
+                <span className="home-shortcut-icon flex h-9 w-9 items-center justify-center rounded-md [&_svg]:size-6">{section.icon}</span>
+                <ChevronRight className="text-muted-foreground" />
+              </span>
+              <span className="block w-full min-w-0">
+                <span className="block text-base font-semibold leading-snug break-words">{section.label}</span>
+                <span className="block text-sm font-normal text-muted-foreground leading-snug mt-1 break-words">{section.description}</span>
+              </span>
+            </Button>
+          ))}
+        </nav>
       </div>
     </div>
   );

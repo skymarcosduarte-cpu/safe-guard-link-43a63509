@@ -77,6 +77,13 @@
     --section-resources: 0 90% 50%;
     --section-community: 320 90% 50%;
     --section-settings: 220 15% 45%;
+    --home-map: 142 70% 32%;
+    --home-alerts: 25 90% 40%;
+    --home-transit: 45 100% 50%;
+    --home-resources: 0 85% 45%;
+    --home-community: 210 80% 30%;
+    --home-settings: 0 0% 25%;
+    --home-mesh: 270 65% 45%;
 
     /* Gradients - Lighter for white background */
     --gradient-panic: linear-gradient(135deg, hsl(15 100% 50%) 0%, hsl(0 90% 45%) 100%);
@@ -117,6 +124,12 @@
     --muted-foreground: 0 0% 60%;
     --border: 0 0% 18%;
     --input: 0 0% 12%;
+    --home-map: 142 70% 60%;
+    --home-alerts: 25 90% 65%;
+    --home-resources: 0 85% 65%;
+    --home-community: 210 80% 70%;
+    --home-settings: 0 0% 80%;
+    --home-mesh: 270 65% 75%;
   }
 }
 
@@ -771,3 +784,32 @@ html, body {
   100% { transform: scale(1.45); opacity: 0; }
 }
 .cloud-ir-tiles { filter: contrast(1.6) brightness(1.25); }
+
+/* Home keeps color as a wayfinding accent, not a full-tile background. */
+.home-shortcut[data-section="map"] { --shortcut-color: var(--home-map); }
+.home-shortcut[data-section="alerts"] { --shortcut-color: var(--home-alerts); }
+.home-shortcut[data-section="transit"] { --shortcut-color: var(--home-transit); }
+.home-shortcut[data-section="resources"] { --shortcut-color: var(--home-resources); }
+.home-shortcut[data-section="community"] { --shortcut-color: var(--home-community); }
+.home-shortcut[data-section="settings"] { --shortcut-color: var(--home-settings); }
+.home-shortcut[data-section="status"] { --shortcut-color: var(--home-mesh); }
+.home-shortcut[data-section="detector"] { --shortcut-color: var(--rosa-mexicano); }
+.home-shortcut {
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border-color: hsl(var(--border));
+  border-top: 3px solid hsl(var(--shortcut-color));
+}
+.home-shortcut:hover {
+  background: hsl(var(--muted) / 0.45);
+  color: hsl(var(--foreground));
+  border-color: hsl(var(--shortcut-color));
+}
+.home-shortcut-icon {
+  background: hsl(var(--shortcut-color) / 0.12);
+  color: hsl(var(--shortcut-color));
+}
+.home-shortcut[data-section="transit"] .home-shortcut-icon {
+  background: hsl(var(--home-transit));
+  color: hsl(var(--foreground));
+}

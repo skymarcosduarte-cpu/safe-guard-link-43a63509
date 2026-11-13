@@ -65,8 +65,6 @@ import { CommunityChat } from '@/components/CommunityChat';
 import { StatusCheckinPrompt } from '@/components/StatusCheckinPrompt';
 import { Clave100CheckinPrompt } from '@/components/Clave100CheckinPrompt';
 import { ReopenCheckinButton } from '@/components/ReopenCheckinButton';
-import { OnboardingTutorial } from '@/components/OnboardingTutorial';
-import { ComprehensiveTutorial } from '@/components/ComprehensiveTutorial';
 import { FloatingHelpButton } from '@/components/FloatingHelpButton';
 import { UIIssueReportPrompt } from '@/components/UIIssueReportPrompt';
 import { UIIssueDetectorProvider, useUIIssueContext } from '@/hooks/useUIIssueDetector';
@@ -166,9 +164,6 @@ function AppContent() {
   // Auto-update on app entry
   useAutoUpdate();
   
-  const [showOnboarding, setShowOnboarding] = useState(false);
-  const [showComprehensiveTutorial, setShowComprehensiveTutorial] = useState(false);
-  const [isNewUser, setIsNewUser] = useState(false);
   const [activeTab, setActiveTab] = useState<TabId>('home');
 
   // Al tocar "Ver en mapa" en el buzón Mesh, cambiar a la pestaña de mapa
@@ -186,36 +181,6 @@ function AppContent() {
   // Determine authentication state
   const isAuthenticated = !!user;
   const isProfileComplete = !!profile;
-
-  // Handle new user onboarding - show comprehensive tutorial for new users
-  // Check database for disclaimer acceptance, not just localStorage
-  useEffect(() => {
-    if (isAuthenticated && isProfileComplete && profile) {
-      // Check if disclaimer was accepted in database
-      const disclaimerAccepted = !!profile.tutorial_disclaimer_accepted_at;
-      
-      if (!disclaimerAccepted) {
-        // Force tutorial if disclaimer not accepted in database
-        setIsNewUser(true);
-        setShowComprehensiveTutorial(true);
-      } else {
-        // Sync localStorage with database state
-        localStorage.setItem('comprehensive-tutorial-complete', 'true');
-      }
-    }
-  }, [isAuthenticated, isProfileComplete, profile]);
-
-  const handleOnboardingComplete = () => {
-    setShowOnboarding(false);
-    setIsNewUser(false);
-    localStorage.setItem('onboarding-complete', 'true');
-  };
-
-  const handleComprehensiveTutorialComplete = () => {
-    setShowComprehensiveTutorial(false);
-    setIsNewUser(false);
-    localStorage.setItem('comprehensive-tutorial-complete', 'true');
-  };
 
   const handleLogout = async () => {
     await signOut();
@@ -235,21 +200,6 @@ function AppContent() {
   // We bridge them via onAuthComplete so AppContent refreshes its profile state after registration.
   if (!isAuthenticated || !isProfileComplete) {
     return <AuthGate onAuthComplete={refetchProfile} />;
-  }
-
-  // Show onboarding for new users (legacy - short version)
-  if (showOnboarding) {
-    return <OnboardingTutorial onComplete={handleOnboardingComplete} />;
-  }
-
-  // Show comprehensive tutorial for new users
-  if (showComprehensiveTutorial) {
-    return (
-      <ComprehensiveTutorial 
-        onComplete={handleComprehensiveTutorialComplete} 
-        onClose={handleComprehensiveTutorialComplete} 
-      />
-    );
   }
 
   return <AuthenticatedApp activeTab={activeTab} setActiveTab={setActiveTab} userRole={userRole} handleLogout={handleLogout} />;

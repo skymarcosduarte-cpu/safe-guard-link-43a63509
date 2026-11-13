@@ -5,3 +5,4 @@
 - CDMX advisories are fetched through an authenticated edge function with bounded parallel RSS requests; publication times and consultation times remain separate and news reports never imply verified live conditions.
 
 - Mass earthquake alerts run server-side from a per-minute scheduled poll of the USGS feed, deduplicated per event in a server-only table, so alerts reach devices in the background without any client being open.
+- Home news reuses the cached RSS hook and filters emergency topics client-side; automatic tutorial entry is removed while Settings retains the manual guide, keeping entry fast without changing authentication.
