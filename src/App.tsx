@@ -5,7 +5,6 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BottomNavigation, type TabId } from '@/components/BottomNavigation';
-import { MatsLogo } from '@/components/MatsLogo';
 import { PanicButton } from '@/components/PanicButton';
 import { AppHeader } from '@/components/AppHeader';
 import { AuthGate } from '@/pages/AuthGate';
@@ -186,11 +185,12 @@ function AppContent() {
     await signOut();
   };
 
-  // Show loading while checking auth state
+  // Paint Home immediately while authentication is checked; protected screens
+  // and global emergency actions still wait for an authenticated profile.
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <MatsLogo size={64} showText />
+      <div className="h-dvh flex flex-col bg-background">
+        <HomeScreen onNavigate={setActiveTab} />
       </div>
     );
   }
