@@ -64,7 +64,7 @@ export function CdmxWifiLayer({ map, enabled, onStatus }: Props) {
             popup.append(title);
             const pointDate = point.retrievedAt ? new Date(point.retrievedAt).toLocaleDateString('es-MX') : date;
             const publication = point.sourceUpdatedAt ? `Datos de origen: ${new Date(point.sourceUpdatedAt).toLocaleDateString('es-MX')} · registro histórico` : '';
-            for (const text of ['Internet gratuito', point.address, point.borough, publication, `Consulta: ${pointDate}`, 'Servicio no verificado en tiempo real.']) {
+            for (const text of ['Internet gratuito', point.address, point.borough, publication, point.reportedStatus, `Consulta: ${pointDate}`, 'Servicio no verificado en tiempo real.']) {
               if (!text) continue;
               const line = document.createElement('p');
               line.textContent = text;

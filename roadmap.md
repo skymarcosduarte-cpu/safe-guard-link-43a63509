@@ -4,6 +4,8 @@
 - [x] Live loading verified: SMN official rain forecast + media reports for roads/transport.
 
 # Internet gratuito CDMX
+- [x] Incorporar 36 sitios del documento oficial ADIP–Telmex: Benito Juárez (1), Coyoacán (5), Miguel Hidalgo (9), Cuauhtémoc (13), Tlalpan (3) y Venustiano Carranza (5); total 975. Mostrar documento sin fecha/disponibilidad no confirmada, excluir registros contradictorios y duplicados. Veinte pruebas pasan y detalles de XOCO/Venustiano Carranza verificados en escritorio/móvil.
+- [ ] Incorporar Cuajimalpa: el listado ADIP–Telmex no contiene esa alcaldía y el mapa/catálogo general oficial no responde; faltan coordenadas oficiales verificables.
 - [x] Obtener 934 ubicaciones elegibles del Atlas de Riesgos oficial, con procedencia y fecha; excluir cinco reportes de falla.
 - [x] Añadir Internet gratuito CDMX al selector de ubicaciones, con marcadores y detalles.
 - [x] Cinco pruebas de datos y visualización aislada de la capa real en móvil/escritorio; desactivación retira marcadores.

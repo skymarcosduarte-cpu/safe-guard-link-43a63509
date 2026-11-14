@@ -1,5 +1,24 @@
 import { describe, expect, it } from 'vitest';
-import { normalizeWifiFeatures, normalizeParkWifiRecords, wifiCoverage, WIFI_PARKS_SOURCE } from './cdmxWifi';
+import { normalizeWifiFeatures, normalizeParkWifiRecords, normalizeAdipWifiDocument, mergeWifiPoints, wifiCoverage, WIFI_PARKS_SOURCE, WIFI_ADIP_DOCUMENT } from './cdmxWifi';
+
+describe('ADIP official document locations', () => {
+  const row = (borough: string, name = 'PARQUE', lat = '19. 419245', lng = '-99.113294') => `| ${borough} | ${name} | SITIOS PÚBLICOS | ${lat} | ${lng} |`;
+  for (const [input, expected] of [['BENITO JUÁREZ', 'Benito Juárez'], ['COYOACÁN', 'Coyoacán'], ['MIGUEL HIDALGO', 'Miguel Hidalgo'], ['CUAUHTÉMOC', 'Cuauhtémoc'], ['TLALPAN', 'Tlalpan'], ['CUAJIMALPA', 'Cuajimalpa'], ['VENUSTIANO CARRANZA', 'Venustiano Carranza']]) {
+    it(`accepts verified records for ${expected}`, () => {
+      expect(normalizeAdipWifiDocument(row(input), '2026-11-14T07:03:00Z')[0]).toMatchObject({ borough: expected, lat: 19.419245, lng: -99.113294, source: WIFI_ADIP_DOCUMENT, reportedStatus: 'Documento sin fecha; disponibilidad no confirmada' });
+    });
+  }
+  it('does not invent missing Cuajimalpa locations', () => {
+    expect(normalizeAdipWifiDocument(row('TLALPAN'), '2026-11-14').some(p => p.borough === 'Cuajimalpa')).toBe(false);
+  });
+  it('excludes contradictory boroughs and malformed coordinates without correcting them', () => {
+    expect(normalizeAdipWifiDocument([row('TLALPAN', 'EXPLANADA DELEGACION MAGDALENA CON TRERAS'), row('CUAUHTÉMOC', 'CORREDOR REFORMA (MUSEO RUFINO MAYO)'), row('TLALPAN', 'PARQUE', '19.3(:()6')].join('\n'), '2026-11-14')).toEqual([]);
+  });
+  it('deduplicates colocated sites across official sources', () => {
+    const points = normalizeAdipWifiDocument(row('TLALPAN'), '2026-11-14');
+    expect(mergeWifiPoints([points, points])).toHaveLength(1);
+  });
+});
 
 const point = (status = 'WIFI GRATUITO_ACTIVO', lat = 19.368977400386882, lng = -99.19453490036528) => ({
   geometry: { type: 'Point', coordinates: [lng, lat] },

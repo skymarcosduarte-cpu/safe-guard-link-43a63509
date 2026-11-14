@@ -1,5 +1,5 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
-import { normalizeWifiFeatures, normalizeParkWifiRecords, wifiCoverage, WIFI_SOURCE, WIFI_PARKS_SOURCE, WIFI_PARKS_DATASET, type WifiCatalog } from '../src/lib/cdmxWifi';
+import { normalizeWifiFeatures, normalizeParkWifiRecords, normalizeAdipWifiDocument, mergeWifiPoints, wifiCoverage, WIFI_SOURCE, WIFI_PARKS_SOURCE, WIFI_PARKS_DATASET, WIFI_ADIP_DOCUMENT, type WifiCatalog } from '../src/lib/cdmxWifi';
 
 // Public geospatial data, not imagery: store a normalized official snapshot for reliable app loading.
 const path = 'public/data/cdmx-wifi.json';
@@ -12,6 +12,8 @@ async function getJson(url: string) {
 }
 const query = new URLSearchParams({ where: '1=1', outFields: '*', outSR: '4326', f: 'geojson' });
 const parksApi = `https://cdmx.opendatasoft.com/api/explore/v2.1/catalog/datasets/${WIFI_PARKS_DATASET}`;
+// Optional official document extraction supplied after retrieval; never depend on a search cache at app runtime.
+const adipTextPath = process.argv.find(arg => arg.startsWith('--adip-text='))?.slice('--adip-text='.length);
 const results = await Promise.allSettled([
   (async () => {
     const data = await getJson(`${WIFI_SOURCE}/query?${query}`);
@@ -29,21 +31,27 @@ const results = await Promise.allSettled([
     if (!points.length) throw new Error('No eligible parks points');
     return points;
   })(),
+  (async () => {
+    if (!adipTextPath) throw new Error('No new ADIP document extraction supplied');
+    const points = normalizeAdipWifiDocument(await readFile(adipTextPath, 'utf8'), retrievedAt);
+    if (!points.length) throw new Error('No eligible ADIP document points');
+    return points;
+  })(),
 ]);
-const sources = [WIFI_SOURCE, WIFI_PARKS_SOURCE];
-const points = results.flatMap((result, index) => {
+const sources = [WIFI_SOURCE, WIFI_PARKS_SOURCE, WIFI_ADIP_DOCUMENT];
+const points = mergeWifiPoints(results.map((result, index) => {
   if (result.status === 'fulfilled') return result.value;
   console.warn(`Keeping previous records for ${sources[index]}: ${String(result.reason)}`);
   return previous.points.filter(p => (p.source ?? previous.source) === sources[index])
     .map(p => ({ ...p, source: p.source ?? previous.source, retrievedAt: p.retrievedAt ?? previous.retrievedAt }));
-});
+}));
 if (!points.length || results.every(r => r.status === 'rejected')) throw new Error('No source refreshed; existing snapshot unchanged');
 await mkdir('public/data', { recursive: true });
 await writeFile(path, JSON.stringify({
   source: WIFI_SOURCE,
   retrievedAt,
   coverage: wifiCoverage(points),
-  historicalNotice: points.some(p => p.sourceUpdatedAt) ? 'Parques de Iztapalapa y Tlalpan: datos históricos de 2017; disponibilidad no confirmada.' : undefined,
+  historicalNotice: [points.some(p => p.sourceUpdatedAt) ? 'Parques de Iztapalapa y Tlalpan: datos históricos de 2017.' : '', points.some(p => p.source === WIFI_ADIP_DOCUMENT) ? 'ADIP–Telmex: documento sin fecha de publicación; disponibilidad no confirmada.' : ''].filter(Boolean).join(' ') || undefined,
   points,
 }));
 console.log(`Saved ${points.length} official locations. ${wifiCoverage(points)}`);

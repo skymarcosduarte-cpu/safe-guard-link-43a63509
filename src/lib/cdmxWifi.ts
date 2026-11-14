@@ -1,6 +1,49 @@
 export const WIFI_SOURCE = 'https://serviciosatlas.sgirpc.cdmx.gob.mx/arcgis/rest/services/AtlasOnline/AOB_Atlas_de_Riesgos/MapServer/63';
 export const WIFI_PARKS_DATASET = 'localizaciondepuntosdeaccesowifienparquesyplazaspublicasiztapalapa-gdf_iztapalap';
 export const WIFI_PARKS_SOURCE = `https://cdmx.opendatasoft.com/explore/dataset/${WIFI_PARKS_DATASET}/`;
+export const WIFI_ADIP_DOCUMENT = 'https://adip.cdmx.gob.mx/storage/app/media/uploaded-files/TC.pdf';
+
+// Indexed text of ADIP's official document; spaces within numeric cells are extraction artifacts.
+export function normalizeAdipWifiDocument(text: string, retrievedAt: string): WifiPoint[] {
+  const boroughs: Record<string, string> = {
+    'BENITO JUÁREZ': 'Benito Juárez', 'COYOACÁN': 'Coyoacán', 'MIGUEL HIDALGO': 'Miguel Hidalgo',
+    'CUAUHTÉMOC': 'Cuauhtémoc', 'TLALPAN': 'Tlalpan', 'CUAJIMALPA': 'Cuajimalpa',
+    'VENUSTIANO CARRANZA': 'Venustiano Carranza',
+  };
+  const points: WifiPoint[] = [];
+  const seen = new Set<string>();
+  for (const line of text.split('\n')) {
+    const cells = line.split('|').slice(1, -1).map(cell => cell.trim());
+    if (cells.length !== 5) continue;
+    const [district, name, category, latitude, longitude] = cells;
+    const borough = boroughs[district];
+    // Reject known contradictory place/borough records, private malls and ambiguous office entries.
+    if (!borough || !name || !['SITIOS PÚBLICOS', 'HOSPITALES'].includes(category) ||
+        /MAGDALENA CON\s*TRERAS|RUFINO MAYO|CENTRO COYOACAN|BUNKER|GLORIETA INSURGENTES/i.test(name)) continue;
+    const latText = latitude.replace(/\s/g, '');
+    const lngText = longitude.replace(/\s/g, '');
+    if (!/^\d+\.\d+$/.test(latText) || !/^-\d+\.\d+$/.test(lngText)) continue;
+    const lat = Number(latText), lng = Number(lngText);
+    if (lat < 19 || lat > 19.7 || lng < -99.4 || lng > -98.9) continue;
+    const key = `${lat},${lng}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    points.push({ id: 2000000 + points.length, name, lat, lng, borough, address: '',
+      reportedStatus: 'Documento sin fecha; disponibilidad no confirmada',
+      source: WIFI_ADIP_DOCUMENT, sourceLabel: 'ADIP CDMX · WiFi Móvil CDMX–Telmex', retrievedAt });
+  }
+  return points;
+}
+
+export function mergeWifiPoints(groups: WifiPoint[][]): WifiPoint[] {
+  const seen = new Set<string>();
+  return groups.flat().filter(point => {
+    const key = `${point.lat},${point.lng}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
 
 export interface WifiPoint {
   id: number;
