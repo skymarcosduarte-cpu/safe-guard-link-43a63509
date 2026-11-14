@@ -7,3 +7,4 @@
 - Mass earthquake alerts run server-side from a per-minute scheduled poll of the USGS feed, deduplicated per event in a server-only table, so alerts reach devices in the background without any client being open.
 - Home news reuses the cached RSS hook and filters emergency topics client-side; automatic tutorial entry is removed while Settings retains the manual guide, keeping entry fast without changing authentication.
 - During session initialization, render Home instead of a logo splash; mount protected screens and global emergency actions only after authentication and profile checks finish.
+- Free Wi-Fi map locations use a normalized official GeoJSON snapshot refreshed by a standalone script; display source, consultation date and partial coverage, exclude fault reports, and render only viewport markers without querying Overpass for this layer.

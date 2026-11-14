@@ -26,6 +26,9 @@ import { SpecialtyFilter } from '@/components/SpecialtyFilter';
 import { LiveEventsMapView } from '@/components/LiveEventsMapView';
 import { CloudLayerToggle } from '@/components/CloudLayerToggle';
 import { CycloneForecastLayer } from '@/components/CycloneForecastLayer';
+import { CdmxWifiLayer, type WifiLayerStatus } from '@/components/CdmxWifiLayer';
+import { Button } from '@/components/ui/button';
+import { Wifi, Check } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -1263,6 +1266,7 @@ export interface POIVisibility {
   ambulance: boolean;
   rescue_unit: boolean;
   k9_unit: boolean;
+  wifi: boolean;
 }
 
 // Collapsible Map Legend Component with POI toggles
@@ -1272,9 +1276,10 @@ interface MapLegendProps {
   poisLoading?: boolean;
   isNavigating?: boolean;
   forceCloseSignal?: number;
+  wifiStatus: WifiLayerStatus;
 }
 
-const MapLegend: React.FC<MapLegendProps> = ({ poiVisibility, onTogglePOI, poisLoading, isNavigating = false, forceCloseSignal = 0 }) => {
+const MapLegend: React.FC<MapLegendProps> = ({ poiVisibility, onTogglePOI, poisLoading, isNavigating = false, forceCloseSignal = 0, wifiStatus }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   // Auto-close when navigating (viewing an alert/user)
@@ -1466,6 +1471,25 @@ const MapLegend: React.FC<MapLegendProps> = ({ poiVisibility, onTogglePOI, poisL
           {/* POI Toggles */}
           <div className="border-t border-border my-2 pt-2">
             <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-1">Servicios (click para mostrar)</div>
+            <Button
+              variant={poiVisibility.wifi ? 'secondary' : 'ghost'}
+              className="h-auto min-h-10 w-full justify-start whitespace-normal px-1 py-2 text-left"
+              aria-pressed={!!poiVisibility.wifi}
+              onClick={() => onTogglePOI('wifi')}
+            >
+              <Wifi className="text-primary" />
+              <span className="flex-1">Internet gratuito CDMX</span>
+              {poiVisibility.wifi && <Check className="text-primary" />}
+            </Button>
+            {poiVisibility.wifi && (
+              <div role="status" className="max-w-56 space-y-1 py-2 text-xs text-muted-foreground">
+                <p>{wifiStatus.loading ? 'Cargando puntos…' : wifiStatus.error || `${wifiStatus.count.toLocaleString('es-MX')} puntos registrados`}</p>
+                <p>Álvaro Obregón · cobertura parcial de CDMX</p>
+                {wifiStatus.retrievedAt && <p>Consulta: {new Date(wifiStatus.retrievedAt).toLocaleDateString('es-MX')}</p>}
+                <p>Servicio no verificado en tiempo real.</p>
+                <a className="text-primary underline" href="https://internetparatodas.cdmx.gob.mx/puntos-wifi/all" target="_blank" rel="noopener noreferrer">Mapa oficial de CDMX</a>
+              </div>
+            )}
             {poiItems.filter(item => item.type !== 'first_aid_kit' && item.type !== 'ambulance').map(item => (
               <button
                 key={item.type}
@@ -1534,7 +1558,7 @@ export const MapScreen: React.FC<MapScreenProps> = ({ className, respondersToMyA
     try {
       const saved = localStorage.getItem('mats-poi-visibility');
       if (saved) {
-        return JSON.parse(saved);
+        return { ...JSON.parse(saved), wifi: JSON.parse(saved).wifi === true };
       }
     } catch (e) {
       console.warn('Failed to load POI visibility from localStorage');
@@ -1549,8 +1573,11 @@ export const MapScreen: React.FC<MapScreenProps> = ({ className, respondersToMyA
       ambulance: false,
       rescue_unit: false,
       k9_unit: false,
+      wifi: false,
     };
   });
+
+  const [wifiStatus, setWifiStatus] = useState<WifiLayerStatus>({ loading: false, count: 0, error: null });
 
   // Save POI visibility to localStorage when it changes
   useEffect(() => {
@@ -1593,7 +1620,7 @@ export const MapScreen: React.FC<MapScreenProps> = ({ className, respondersToMyA
   const currentUserId = user?.id;
 
   // Check if any POI type is enabled
-  const anyPOIEnabled = Object.values(poiVisibility).some(v => v);
+  const anyPOIEnabled = ['hospital', 'gas_station', 'pharmacy', 'police', 'fire_station'].some(type => poiVisibility[type as keyof POIVisibility]);
 
   // Calculate available specialties and counts from active users
   const { availableSpecialties, specialistCounts, filteredLocations } = React.useMemo(() => {
@@ -3759,6 +3786,7 @@ export const MapScreen: React.FC<MapScreenProps> = ({ className, respondersToMyA
       {/* Satellite cloud layer toggle (RainViewer infrared) */}
       <CloudLayerToggle map={mapInstanceRef.current} />
       <CycloneForecastLayer map={mapInstanceRef.current} />
+      <CdmxWifiLayer map={mapReady ? mapInstanceRef.current : null} enabled={!!poiVisibility.wifi} onStatus={setWifiStatus} />
 
       {/* Active users count + center button + alerts panel - hide in eventos mode */}
       {mapViewMode === 'comunidad' && (
@@ -3801,6 +3829,7 @@ export const MapScreen: React.FC<MapScreenProps> = ({ className, respondersToMyA
           poiVisibility={poiVisibility}
           onTogglePOI={handleTogglePOI}
           poisLoading={poisLoading}
+          wifiStatus={wifiStatus}
           isNavigating={!!selectedMapAlert || usersPanelOpen}
           forceCloseSignal={forceCloseMenus}
         />
