@@ -1484,7 +1484,8 @@ const MapLegend: React.FC<MapLegendProps> = ({ poiVisibility, onTogglePOI, poisL
             {poiVisibility.wifi && (
               <div role="status" className="max-w-56 space-y-1 py-2 text-xs text-muted-foreground">
                 <p>{wifiStatus.loading ? 'Cargando puntos…' : wifiStatus.error || `${wifiStatus.count.toLocaleString('es-MX')} puntos registrados`}</p>
-                <p>Álvaro Obregón · cobertura parcial de CDMX</p>
+                {wifiStatus.coverage && <p>{wifiStatus.coverage}</p>}
+                {wifiStatus.historicalNotice && <p>{wifiStatus.historicalNotice}</p>}
                 {wifiStatus.retrievedAt && <p>Consulta: {new Date(wifiStatus.retrievedAt).toLocaleDateString('es-MX')}</p>}
                 <p>Servicio no verificado en tiempo real.</p>
                 <a className="text-primary underline" href="https://internetparatodas.cdmx.gob.mx/puntos-wifi/all" target="_blank" rel="noopener noreferrer">Mapa oficial de CDMX</a>

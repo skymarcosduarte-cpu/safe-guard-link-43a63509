@@ -7,6 +7,8 @@ export interface WifiLayerStatus {
   count: number;
   error: string | null;
   retrievedAt?: string;
+  coverage?: string;
+  historicalNotice?: string;
 }
 
 interface Props {
@@ -60,17 +62,19 @@ export function CdmxWifiLayer({ map, enabled, onStatus }: Props) {
             const title = document.createElement('strong');
             title.textContent = point.name;
             popup.append(title);
-            for (const text of ['Internet gratuito', point.address, point.borough, `Consulta: ${date}`, 'Servicio no verificado en tiempo real.']) {
+            const pointDate = point.retrievedAt ? new Date(point.retrievedAt).toLocaleDateString('es-MX') : date;
+            const publication = point.sourceUpdatedAt ? `Datos de origen: ${new Date(point.sourceUpdatedAt).toLocaleDateString('es-MX')} · registro histórico` : '';
+            for (const text of ['Internet gratuito', point.address, point.borough, publication, `Consulta: ${pointDate}`, 'Servicio no verificado en tiempo real.']) {
               if (!text) continue;
               const line = document.createElement('p');
               line.textContent = text;
               popup.append(line);
             }
             const source = document.createElement('a');
-            source.href = catalog.source;
+            source.href = point.source ?? catalog.source;
             source.target = '_blank';
             source.rel = 'noopener noreferrer';
-            source.textContent = 'Fuente: Atlas de Riesgos CDMX';
+            source.textContent = `Fuente: ${point.sourceLabel ?? 'Atlas de Riesgos CDMX'}`;
             popup.append(source);
             const directions = document.createElement('a');
             directions.className = 'block';
@@ -89,7 +93,7 @@ export function CdmxWifiLayer({ map, enabled, onStatus }: Props) {
         };
         redraw();
         map.on('moveend', redraw);
-        onStatus({ loading: false, count: points.length, error: null, retrievedAt: catalog.retrievedAt });
+        onStatus({ loading: false, count: points.length, error: null, retrievedAt: catalog.retrievedAt, coverage: catalog.coverage, historicalNotice: catalog.historicalNotice });
       } catch (error) {
         if (!disposed) onStatus({ loading: false, count: 0, error: error instanceof Error && error.name !== 'AbortError' ? error.message : 'No se pudo cargar Internet gratuito. Vuelve a seleccionarlo para reintentar.' });
       } finally {
